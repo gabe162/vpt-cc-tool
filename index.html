@@ -246,9 +246,13 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
           <input id="pub_site_url" placeholder="https://vantagepointtravel.com" value="https://vantagepointtravel.com">
         </div>
         <div class="field">
-          <label>API Key</label>
-          <input id="pub_app_password" type="password" placeholder="Enter your VPT API key" value="6564ee37969c7b9e8079e4f44310fe05ba078421b61bc7d4bdf934b3972afdbb">
+          <label>Consumer Key</label>
+          <input id="pub_app_password" type="password" value="ck_9df994243152844d7e94798421e36b507bf18278">
         </div>
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Consumer Secret</label>
+        <input id="pub_consumer_secret" type="password" value="cs_c5c6a6a84ac3fc39142336fdb94e32eabd0b1ae9">
       </div>
       <div class="field" style="margin-bottom:12px">
         <label>Select Client Account</label>
@@ -1142,8 +1146,11 @@ function buildPDF(r){
 
 function getWPAuth() {
   var url = g("pub_site_url").trim().replace(/\/$/, "");
-  var key = g("pub_app_password").trim();
-  return { url: url, key: key, headers: {
+  var ck = g("pub_app_password").trim();
+  var cs = g("pub_consumer_secret").trim();
+  var auth = btoa(ck + ":" + cs);
+  return { url: url, key: ck, headers: {
+    "Authorization": "Basic " + auth,
     "Content-Type": "application/json"
   }};
 }
@@ -1158,7 +1165,7 @@ function loadWPCustomers() {
   if (!auth.url) return;
   var sel = document.getElementById("pub_client_select");
   sel.innerHTML = "<option>Loading...</option>";
-  fetch(auth.url + "/wp-json/vpt/v1/customers?vpt_key=" + auth.key, { headers: auth.headers })
+  fetch(auth.url + "/wp-json/vpt/v1/customers", { headers: auth.headers })
     .then(function(r){ return r.json(); })
     .then(function(customers){
       if (!Array.isArray(customers)) { sel.innerHTML = "<option>Error loading — check URL & password</option>"; return; }
@@ -1178,7 +1185,7 @@ function createAndSelectClient() {
   var status = document.getElementById("publish-status");
   status.textContent = "Creating account...";
   status.style.color = "#888";
-  fetch(auth.url + "/wp-json/vpt/v1/customers?vpt_key=" + auth.key, {
+  fetch(auth.url + "/wp-json/vpt/v1/customers", {
     method: "POST", headers: auth.headers,
     body: JSON.stringify({ email: email, name: name })
   })
@@ -1233,7 +1240,7 @@ function publishToDashboard() {
         totals: t
       }
     };
-    fetch(auth.url + "/wp-json/vpt/v1/strategies?vpt_key=" + auth.key, {
+    fetch(auth.url + "/wp-json/vpt/v1/strategies", {
       method: "POST", headers: auth.headers,
       body: JSON.stringify(payload)
     })
