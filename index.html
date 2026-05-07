@@ -588,7 +588,7 @@ function importCardsFromSurvey(){
           fromLib:card.name,
           name:card.name,
           af:card.af||"0",
-          earn:buildEarnStr(card),
+          earn:"Flights "+(card.r_flights||1)+"x · Dining "+(card.r_dining||1)+"x · Other "+(card.r_other||1)+"x",
           earnRate:card.r_other||"1",
           perks:card.perks||""
         });
