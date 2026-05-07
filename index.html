@@ -246,8 +246,8 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
           <input id="pub_site_url" placeholder="https://vantagepointtravel.com" value="https://vantagepointtravel.com">
         </div>
         <div class="field">
-          <label>Admin Password (Application Password)</label>
-          <input id="pub_app_password" type="password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx">
+          <label>API Key</label>
+          <input id="pub_app_password" type="password" placeholder="Enter your VPT API key" value="6564ee37969c7b9e8079e4f44310fe05ba078421b61bc7d4bdf934b3972afdbb">
         </div>
       </div>
       <div class="field" style="margin-bottom:12px">
@@ -1142,10 +1142,9 @@ function buildPDF(r){
 
 function getWPAuth() {
   var url = g("pub_site_url").trim().replace(/\/$/, "");
-  var pass = g("pub_app_password").trim();
-  var user = "admin"; // WP admin username
+  var key = g("pub_app_password").trim();
   return { url: url, headers: {
-    "Authorization": "Basic " + btoa(user + ":" + pass),
+    "X-VPT-API-KEY": key,
     "Content-Type": "application/json"
   }};
 }
