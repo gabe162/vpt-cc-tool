@@ -187,6 +187,10 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
     <div class="section">
       <h2>Current Card Strategy</h2>
       <p class="section-note">Enter the client's existing cards. Pick from your Card Library or enter manually. These form the baseline for the comparison.</p>
+      <div id="import-survey-banner" class="hidden" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#C9A84C">Cards detected from survey: <span id="import-survey-names" style="font-weight:600"></span></span>
+        <button class="btn-sm" onclick="importCardsFromSurvey()" style="background:#C9A84C;color:#000;border:none;padding:6px 14px;font-size:11px;font-weight:700;border-radius:2px;cursor:pointer">Import Cards</button>
+      </div>
       <div id="current-cards-list"></div>
       <button class="add-btn" onclick="addCC()">+ Add Current Card</button>
     </div>
@@ -558,6 +562,62 @@ function buildLibSelect(selected){
 }
 
 // ---- CURRENT CARDS ----
+function importCardsFromSurvey(){
+  var rawText = g("c_current_cards_raw");
+  if(!rawText){alert("No card data found from survey. Please load a Jotform response first.");return;}
+  var lib = getLib();
+  var libNames = lib.map(function(c){return c.name.toLowerCase();});
+  // Split by comma or newline
+  var cardTexts = rawText.replace(/\n/g,",").split(",").map(function(s){return s.trim();}).filter(Boolean);
+  var matched = 0;
+  cardTexts.forEach(function(text){
+    // Try exact match first, then partial
+    var card = lib.find(function(c){return c.name.toLowerCase()===text.toLowerCase();});
+    if(!card){
+      card = lib.find(function(c){
+        return c.name.toLowerCase().indexOf(text.toLowerCase())>-1 ||
+               text.toLowerCase().indexOf(c.name.toLowerCase())>-1;
+      });
+    }
+    if(card){
+      // Check not already added
+      var alreadyAdded = CC.some(function(c){return c.name===card.name;});
+      if(!alreadyAdded){
+        CC.push({
+          id:Date.now()+Math.random(),
+          fromLib:card.name,
+          name:card.name,
+          af:card.af||"0",
+          earn:buildEarnStr(card),
+          earnRate:card.r_other||"1",
+          perks:card.perks||""
+        });
+        matched++;
+      }
+    }
+  });
+  if(matched===0){
+    alert("No cards from the survey matched your Card Library. You may need to add them manually.");
+  }
+  renderCC();
+  document.getElementById("import-survey-banner").classList.add("hidden");
+}
+
+function checkSurveyCards(){
+  var rawText = g("c_current_cards_raw");
+  if(!rawText) return;
+  var banner = document.getElementById("import-survey-banner");
+  var namesEl = document.getElementById("import-survey-names");
+  if(!banner||!namesEl) return;
+  // Only show if we have cards and Step 2 is visible
+  var cardTexts = rawText.replace(/\n/g,",").split(",").map(function(s){return s.trim();}).filter(Boolean);
+  if(cardTexts.length>0&&CC.length===0){
+    namesEl.textContent = cardTexts.join(", ");
+    banner.classList.remove("hidden");
+    banner.style.display="flex";
+  }
+}
+
 function addCC(){CC.push({id:Date.now(),fromLib:"",name:"",af:"",earn:"",earnRate:"1",perks:""});renderCC();}
 function removeCC(id){CC=CC.filter(function(c){return c.id!==id;});renderCC();}
 function onCCLibChange(i,val){
