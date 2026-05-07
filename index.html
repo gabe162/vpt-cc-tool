@@ -960,6 +960,7 @@ function renderSaved(){
     +"<div class='rdate'>"+r.date+" · +"+Math.round(r.totals.deltaPts||0).toLocaleString()+" pts gain</div></div>"
     +"<div class='report-actions'><button onclick='loadRep("+r.id+")'>Load</button>"
     +"<button onclick='exportSavedPDF("+r.id+")'>PDF</button>"
+    +"<button onclick='exportReportJSON("+r.id+")' style='background:rgba(201,168,76,0.15);color:#C9A84C;border-color:rgba(201,168,76,0.3)'>Export JSON</button>"
     +"<button class='del' onclick='delRep("+r.id+")'>Delete</button></div></div>";
   }).join("");
 }
@@ -1316,6 +1317,17 @@ function resetCurrencies(){
   if(!confirm("Reset all point values to defaults?")) return;
   saveCurrencies(DEFAULT_CURRENCIES);
   renderCurrencies();
+}
+
+function exportReportJSON(id){
+  var reps=getReps();
+  var r=reps.find(function(x){return x.id===id;});
+  if(!r)return;
+  var blob=new Blob([JSON.stringify(r,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="VPT_Strategy_"+r.name.replace(/[^a-z0-9]/gi,"_")+".json";
+  a.click();
 }
 
 function exportBackup(){
